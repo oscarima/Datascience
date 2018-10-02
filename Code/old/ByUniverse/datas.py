@@ -97,6 +97,7 @@ if __name__ == '__main__':
     
     print sales.info()
     plt.subplot(212)
+    plt.legend()
     plt.plot(sales.index.to_pydatetime(),sales.sales,label='Ventes',color='r')
 
 ##    sm.tsa.seasonal_decompose(imma.Moto,freq=12).plot()
