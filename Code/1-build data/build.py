@@ -59,9 +59,17 @@ def load_sales():
     return sales
 
 def load_holidays():
-  holiday=pd.read_csv("jours_feries_alsace_moselle.csv",sep=",")
-  holiday.date=pd.to_datetime(holiday['date'], format='%Y-%m-%d',errors='coerce')
-  return holiday
+    holiday=pd.read_csv("jours_feries_alsace_moselle.csv",sep=",")
+    holiday.date=pd.to_datetime(holiday['date'], format='%Y-%m-%d',errors='coerce')
+    return holiday
+
+def load_meteo():
+    meteo = pd.read_csv("meteo.csv",sep=",")
+    meteo["date"]=pd.to_datetime(meteo["date"], format='%Y%m%d',errors='coerce')
+    meteo["ymd"]=meteo.apply(lambda row:dt.datetime(int(row.date.year), int(row.date.month), 1),axis=1)
+    meteo=meteo[["ymd","rrsum"]].groupby(["ymd"]).sum()
+    #imma=imma.set_index(imma.Date)
+    return meteo
 
 def load_calendar(start,end):
     dates = pd.date_range(start=start,end=end)
@@ -91,7 +99,9 @@ def build_sales_immat_calendar():
     #calcul nb jour    
     datas=calendar.join(sales)
     imma=load_imma()
+    meteo=load_meteo()
     datas=datas.join(imma)
+    datas=datas.join(meteo)
     datas= datas.drop('Date', 1)
     datas= datas.drop(5, 1)
     datas= datas.drop(6, 1)
@@ -99,6 +109,7 @@ def build_sales_immat_calendar():
     datas["Moto"]=datas.Moto.shift(24)
     datas["Cyclo"]=datas.Cyclo.shift(24)
     datas=datas[datas.Moto.isnull()==False]
+    
     datas.to_csv("work.csv",index=True)
 
     return datas
@@ -107,6 +118,7 @@ def build_sales_immat_calendar():
 
 
 if __name__ == '__main__':
+
 ##    mt.buildMeteo("meteo.csv")
 ##    sales=load_sales()
 ##    print sales.info()
