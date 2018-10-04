@@ -8,17 +8,17 @@ import statsmodels.api as sm
 
 def load_work(file):
     datas = pd.read_csv(file,",")
-    datas.Moto=datas.Moto.astype(int)
-    datas.Cyclo=datas.Cyclo.astype(int)
+    #datas.Moto=datas.Moto.astype(int)
+    #datas.Cyclo=datas.Cyclo.astype(int)
     datas.ymd=pd.to_datetime(datas['ymd'], format='%Y-%m-%d',errors='coerce')
-    datas=datas[datas.ymd.dt.year<2018]
+    datas=datas[(datas.ymd.dt.year<2018) ]
     datas=datas.set_index('ymd')
     return datas
 
 def infos(datas):    
     print datas.info()
     print datas.describe()
-    print datas.head(10)
+    #print datas.head(10)
     
 def afficheAllData(datas):
   datas.hist(bins=50, figsize=(20,15))
@@ -37,16 +37,22 @@ def afficheCorr(datas,field1,field2):
 
 def saisonalite(datas):
     sm.tsa.seasonal_decompose(datas.sales,freq=12).plot()
-    result = sm.tsa.stattools.adfuller(datas.Sales)
+    result = sm.tsa.stattools.adfuller(datas.sales)
     plt.show()
     
 if __name__ == '__main__':
-    file='../datas/work.csv'
+    
+    file='../work/sales_STREET_FR.csv'
+##    file='../work/sales_OFFROAD_FR.csv'
+##    file='../work/sales_50CC_FR.csv'
+    file='../work/sales_STREET_FR_noimma.csv'
+##    file='../work/sales_OFFROAD_FR.csv'
+##    file='../work/sales_50CC_FR.csv'
     datas=load_work(file)
     infos(datas)
     correlation(datas,"sales")
-    afficheCorr(datas,"rrsum",'sales')
-    #saisonalite(datas)
+    #afficheAllData(datas)
+    #afficheCorr(datas,"Moto","sales")
+    saisonalite(datas)
     
 
-    

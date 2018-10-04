@@ -7,7 +7,7 @@ import glob
 import datetime as dt
 import optparse
 
-def loadMeteo(file,daily=True):
+def loadMeteo(file,full=True):
     meteo = pd.read_csv(file,sep=";")
     meteo=meteo.loc[:,['numer_sta','date','t','u','rr3']]
     #print meteo
@@ -18,7 +18,8 @@ def loadMeteo(file,daily=True):
     #convert to date only
     meteo.date=pd.to_datetime(meteo['date'], format='%Y%m%d%H0000',errors='coerce')
     #select only 12h
-    meteo=meteo[(meteo.date.dt.hour>8) & (meteo.date.dt.hour<=18)]    
+    if (full==False):
+        meteo=meteo[(meteo.date.dt.hour>8) & (meteo.date.dt.hour<=18)]    
     meteo.date = (meteo["date"]).dt.strftime("%Y%m%d")
     #selected value
     meteo['t']=pd.to_numeric(meteo['t'], errors='coerce')-273.15
@@ -74,11 +75,11 @@ def getMeteo(dt):
         file.close()
     os.remove("../sources/meteo/synop.{0}.csv.gz".format(dt))
 
-def buildMeteo(filename):
+def buildMeteo(filename,full=False):
     frames = []
     for fi in  glob.glob("../sources/meteo/synop.*"):
         print "****Load {0} ****".format(fi)
-        frames.append(loadMeteo(fi))
+        frames.append(loadMeteo(fi,full))
     result=pd.concat(frames)
     result.to_csv(filename,index=False)
 
@@ -102,4 +103,5 @@ if __name__ == '__main__':
     if options.load:
         getMeteo(options.load)
         buildMeteo("../sources/meteo.csv")
+        buildMeteo("../sources/meteoFull.csv",True)
 

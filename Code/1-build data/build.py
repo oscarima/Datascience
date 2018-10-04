@@ -53,8 +53,8 @@ def load_sales(input,region='FR',universe='OFFROAD'):
     sales.columns=['day','month','group','salesregion','universe','year','sales']
     sales["month"]=sales.apply(lambda row: replace_month(str(row.month)),axis=1)
     sales["ymd"]=sales.apply(lambda row:dt.datetime(int(row.year), int(row.month), 1),axis=1)
-    sales=sales[sales.salesregion=='FR']
-    sales=sales[sales.universe=='OFFROAD']    
+    sales=sales[sales.salesregion==region]
+    sales=sales[sales.universe==universe]    
     sales=sales[["ymd","sales"]].groupby(["ymd"]).sum()
     return sales
 
@@ -86,37 +86,40 @@ def load_calendar(inputfile,start,end):
     datas["year"]=datas.apply(lambda row: row.date.year,axis=1)  
     return datas
 
-def load_calendar_bymonth(start,end):
-    datas=load_calendar(start,end)
+def load_calendar_bymonth(input_ferie,start,end):
+    datas=load_calendar(input_ferie,start,end)
     datas["ymd"]=datas.apply(lambda row:dt.datetime(int(row.year), int(row.month), 1),axis=1)
     datas=pd.pivot_table(datas,values='workday', index=['ymd'],columns=['weekday'], aggfunc=np.sum)
     #datas=datas[["ymd","dayoff","workday"]].groupby(["ymd"]).sum()
     return datas
     
-def build_sales_immat_calendar(outputfile):
+def build_sales_immat_calendar(outputfile,region,universe,input_meteo,imma=True):
     input_sales = "../sources/SalesBENEFRACH.csv"
-    input_meteo = "../sources/meteo.csv"
+    #input_meteo = "../sources/meteo.csv"
     input_ferie ="../sources/jours_feries_alsace_moselle.csv"
     input_imma="../sources/imma.csv"
     #load data
-    sales=load_sales(input_sales)
-    imma=load_imma(input_imma)
+    sales=load_sales(input_sales,region,universe)
+    if (imma==True):
+        imma=load_imma(input_imma)
     meteo=load_meteo(input_meteo)
     calendar=load_calendar_bymonth(input_ferie,"20150101","20191231")
     
-    datas=datas.join(imma)
-   
-    #calcul nb jour    
-    datas=calendar.join(sales)
+  
 
+    #calcul nb jour    
+    datas=calendar.join(sales)    
     datas=datas.join(meteo)
-    datas= datas.drop('Date', 1)
+    if (imma==True):    
+        datas=datas.join(imma)
+        datas= datas.drop('Date', 1)
     datas= datas.drop(5, 1)
     datas= datas.drop(6, 1)
     datas['sales'].fillna(0, inplace=True)
-    datas["Moto"]=datas.Moto.shift(24)
-    datas["Cyclo"]=datas.Cyclo.shift(24)
-    datas=datas[datas.Moto.isnull()==False]
+    if (imma==True):
+        datas["Moto"]=datas.Moto.shift(24)
+        datas["Cyclo"]=datas.Cyclo.shift(24)
+        datas=datas[datas.Moto.isnull()==False]
     
     datas.to_csv(outputfile,index=True)
 
@@ -128,8 +131,17 @@ def build_sales_immat_calendar(outputfile):
 if __name__ == '__main__':
 
     file="../datas/work.csv"
-    datas=build_sales_immat_calendar()
+##    mt.getMeteo("201810")
+##    mt.buildMeteo("../sources/meteo.csv")
+##    mt.buildMeteo("../sources/meteoFull.csv",True)
+##    build_sales_immat_calendar("../work/sales_OFFROAD_FR.csv","FR","OFFROAD","../sources/meteoFull.csv")
+##    build_sales_immat_calendar("../work/sales_50CC_FR.csv","FR","50CC","../sources/meteo.csv")
+##    build_sales_immat_calendar("../work/sales_STREET_FR.csv","FR","STREET","../sources/meteo.csv")
 
+
+    build_sales_immat_calendar("../work/sales_OFFROAD_FR_noimma.csv","FR","OFFROAD","../sources/meteoFull.csv",False)
+    build_sales_immat_calendar("../work/sales_50CC_FR_noimma.csv","FR","50CC","../sources/meteo.csv",False)
+    build_sales_immat_calendar("../work/sales_STREET_FR_noimma.csv","FR","STREET","../sources/meteo.csv",False)
     
     
 
