@@ -6,8 +6,8 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
-def load_work():
-    datas = pd.read_csv("work.csv",",")
+def load_work(file):
+    datas = pd.read_csv(file,",")
     datas.Moto=datas.Moto.astype(int)
     datas.Cyclo=datas.Cyclo.astype(int)
     datas.ymd=pd.to_datetime(datas['ymd'], format='%Y-%m-%d',errors='coerce')
@@ -41,7 +41,8 @@ def saisonalite(datas):
     plt.show()
     
 if __name__ == '__main__':
-    datas=load_work()
+    file='../datas/work.csv'
+    datas=load_work(file)
     infos(datas)
     correlation(datas,"sales")
     afficheCorr(datas,"rrsum",'sales')

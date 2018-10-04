@@ -41,15 +41,15 @@ def workday(row):
   else:
     return 0
 
-def load_imma():
-    imma = pd.read_csv("imma.csv",";")
+def load_imma(input_file):
+    imma = pd.read_csv(input_file,";")
     imma["Date"]=imma["Date"].astype(str)
     imma["Date"]=pd.to_datetime(imma["Date"], format='%Y%m%d',errors='coerce')
     imma=imma.set_index(imma.Date)
     return imma
 
-def load_sales():
-    sales = pd.read_csv("SalesBENEFRACH.csv",sep=",")
+def load_sales(input,region='FR',universe='OFFROAD'):
+    sales = pd.read_csv(input,sep=",")
     sales.columns=['day','month','group','salesregion','universe','year','sales']
     sales["month"]=sales.apply(lambda row: replace_month(str(row.month)),axis=1)
     sales["ymd"]=sales.apply(lambda row:dt.datetime(int(row.year), int(row.month), 1),axis=1)
@@ -63,18 +63,18 @@ def load_holidays():
     holiday.date=pd.to_datetime(holiday['date'], format='%Y-%m-%d',errors='coerce')
     return holiday
 
-def load_meteo():
-    meteo = pd.read_csv("meteo.csv",sep=",")
+def load_meteo(inputfile):
+    meteo = pd.read_csv(inputfile,sep=",")
     meteo["date"]=pd.to_datetime(meteo["date"], format='%Y%m%d',errors='coerce')
     meteo["ymd"]=meteo.apply(lambda row:dt.datetime(int(row.date.year), int(row.date.month), 1),axis=1)
     meteo=meteo[["ymd","rrsum"]].groupby(["ymd"]).sum()
     #imma=imma.set_index(imma.Date)
     return meteo
 
-def load_calendar(start,end):
+def load_calendar(inputfile,start,end):
     dates = pd.date_range(start=start,end=end)
     calendar = pd.DataFrame({'date':dates})
-    holiday=pd.read_csv("jours_feries_alsace_moselle.csv",sep=",")
+    holiday=pd.read_csv(inputfile,sep=",")
     holiday.date=pd.to_datetime(holiday['date'], format='%Y-%m-%d',errors='coerce')
     datas=calendar.set_index('date').join(holiday.set_index('date'))
     datas["date"]=datas.index
@@ -93,14 +93,22 @@ def load_calendar_bymonth(start,end):
     #datas=datas[["ymd","dayoff","workday"]].groupby(["ymd"]).sum()
     return datas
     
-def build_sales_immat_calendar():
-    sales=load_sales()
-    calendar=load_calendar_bymonth("20150101","20191231")   
+def build_sales_immat_calendar(outputfile):
+    input_sales = "../sources/SalesBENEFRACH.csv"
+    input_meteo = "../sources/meteo.csv"
+    input_ferie ="../sources/jours_feries_alsace_moselle.csv"
+    input_imma="../sources/imma.csv"
+    #load data
+    sales=load_sales(input_sales)
+    imma=load_imma(input_imma)
+    meteo=load_meteo(input_meteo)
+    calendar=load_calendar_bymonth(input_ferie,"20150101","20191231")
+    
+    datas=datas.join(imma)
+   
     #calcul nb jour    
     datas=calendar.join(sales)
-    imma=load_imma()
-    meteo=load_meteo()
-    datas=datas.join(imma)
+
     datas=datas.join(meteo)
     datas= datas.drop('Date', 1)
     datas= datas.drop(5, 1)
@@ -110,7 +118,7 @@ def build_sales_immat_calendar():
     datas["Cyclo"]=datas.Cyclo.shift(24)
     datas=datas[datas.Moto.isnull()==False]
     
-    datas.to_csv("work.csv",index=True)
+    datas.to_csv(outputfile,index=True)
 
     return datas
     
@@ -119,15 +127,9 @@ def build_sales_immat_calendar():
 
 if __name__ == '__main__':
 
-##    mt.buildMeteo("meteo.csv")
-##    sales=load_sales()
-##    print sales.info()
-##    print sales.describe()
-##    print sales.head(10)
+    file="../datas/work.csv"
     datas=build_sales_immat_calendar()
-##    print datas.info()
-##    print datas.describe()
-##    print datas.head(10)
+
     
     
 

@@ -7,7 +7,7 @@ import glob
 import datetime as dt
 import optparse
 
-def loadMeteo(file):
+def loadMeteo(file,daily=True):
     meteo = pd.read_csv(file,sep=";")
     meteo=meteo.loc[:,['numer_sta','date','t','u','rr3']]
     #print meteo
@@ -64,19 +64,19 @@ def loadMeteoBySta(file,num_sta):
 def getMeteo(dt):
     uri="https://donneespubliques.meteofrance.fr/donnees_libres/Txt/Synop/Archive/synop.{0}.csv.gz".format(dt)
     response = u.urlopen(uri)
-    file = open("meteo\synop.{0}.csv.gz".format(dt), "wb")
+    file = open("../sources/meteo/synop.{0}.csv.gz".format(dt), "wb")
     file.write(response.read())
     file.close()
     print "****Dowload {0} ****".format(uri)
-    with gzip.open("meteo\synop.{0}.csv.gz".format(dt), 'rb') as f:
-        file = open("meteo\synop.{0}.csv".format(dt), "wb")
+    with gzip.open("../sources/meteo/synop.{0}.csv.gz".format(dt), 'rb') as f:
+        file = open("../sources/meteo/synop.{0}.csv".format(dt), "wb")
         file.write(f.read())
         file.close()
-    os.remove("meteo\synop.{0}.csv.gz".format(dt))
+    os.remove("../sources/meteo/synop.{0}.csv.gz".format(dt))
 
 def buildMeteo(filename):
     frames = []
-    for fi in  glob.glob("meteo\synop.*"):
+    for fi in  glob.glob("../sources/meteo/synop.*"):
         print "****Load {0} ****".format(fi)
         frames.append(loadMeteo(fi))
     result=pd.concat(frames)
@@ -84,7 +84,7 @@ def buildMeteo(filename):
 
 def buildMeteoBySta(filename,num_sta):
     frames = []
-    for fi in  glob.glob("meteo\synop.*"):
+    for fi in  glob.glob("../sources/meteo/synop.*"):
         print "****Load {0} ****".format(fi)
         frames.append(loadMeteoBySta(fi,num_sta))
     result=pd.concat(frames)
@@ -101,5 +101,5 @@ if __name__ == '__main__':
     (options,args)=parser.parse_args()
     if options.load:
         getMeteo(options.load)
-        buildMeteo("meteo.csv")
+        buildMeteo("../sources/meteo.csv")
 
