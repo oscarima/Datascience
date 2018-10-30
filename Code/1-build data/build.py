@@ -48,13 +48,15 @@ def load_imma(input_file):
     imma=imma.set_index(imma.Date)
     return imma
 
-def load_sales(input,region='FR',universe='OFFROAD'):
+def load_sales(input,region='FR',universe='ALL'):
     sales = pd.read_csv(input,sep=",")
     sales.columns=['day','month','group','salesregion','universe','year','sales']
     sales["month"]=sales.apply(lambda row: replace_month(str(row.month)),axis=1)
     sales["ymd"]=sales.apply(lambda row:dt.datetime(int(row.year), int(row.month), 1),axis=1)
+    if (universe!='ALL'):
+        sales=sales[sales.universe==universe] 
     sales=sales[sales.salesregion==region]
-    sales=sales[sales.universe==universe]    
+       
     sales=sales[["ymd","sales"]].groupby(["ymd"]).sum()
     return sales
 
@@ -138,7 +140,7 @@ if __name__ == '__main__':
 ##    build_sales_immat_calendar("../work/sales_50CC_FR.csv","FR","50CC","../sources/meteo.csv")
 ##    build_sales_immat_calendar("../work/sales_STREET_FR.csv","FR","STREET","../sources/meteo.csv")
 
-
+    build_sales_immat_calendar("../work/all.csv","FR","ALL","../sources/meteoFull.csv",False)
     build_sales_immat_calendar("../work/sales_OFFROAD_FR_noimma.csv","FR","OFFROAD","../sources/meteoFull.csv",False)
     build_sales_immat_calendar("../work/sales_50CC_FR_noimma.csv","FR","50CC","../sources/meteo.csv",False)
     build_sales_immat_calendar("../work/sales_STREET_FR_noimma.csv","FR","STREET","../sources/meteo.csv",False)
