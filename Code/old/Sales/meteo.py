@@ -104,5 +104,5 @@ if __name__ == '__main__':
         buildMeteo("meteo.csv")
 
            #loadAllMeteo("20130101","20170101")
-    getMeteo("201809")
+
     buildMeteo("meteoCorseAjacio.csv","7761")
