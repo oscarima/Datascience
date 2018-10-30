@@ -99,9 +99,13 @@ def loadAllMeteo(begin,end):
 if __name__ == '__main__':
     parser=optparse.OptionParser()
     parser.add_option("-l","--load",action="store",dest="load",help="load meteo yyyymm")
+    parser.add_option("-b","--begin",action="store",dest="begin",help="load meteo yyyymm")
+    parser.add_option("-e","--end",action="store",dest="end",help="load meteo yyyymm")
     (options,args)=parser.parse_args()
     if options.load:
         getMeteo(options.load)
         buildMeteo("../sources/meteo.csv")
         buildMeteo("../sources/meteoFull.csv",True)
 
+    if options.begin:
+        loadAllMeteo(options.begin,options.end)
